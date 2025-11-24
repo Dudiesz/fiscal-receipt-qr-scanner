@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, X, LayoutDashboard, ScanLine, FileText } from "lucide-react"
+import { Menu, X, ScanLine, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -12,7 +12,6 @@ export function SlideMenu() {
 
   const menuItems = [
     { href: "/", label: "Scanner", icon: ScanLine },
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/relatorios", label: "Relatórios", icon: FileText },
   ]
 

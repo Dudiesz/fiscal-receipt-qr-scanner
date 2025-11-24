@@ -205,7 +205,14 @@ export default function RelatoriosPage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-mono text-gray-300 break-all">{receipt.accessKey}</p>
+                        <p className="text-sm font-mono text-gray-300 break-all mb-2">
+                          <span className="text-primary font-semibold">Chave: </span>
+                          {receipt.accessKey}
+                        </p>
+                        <p className="text-xs font-mono text-gray-400 break-all">
+                          <span className="text-gray-500">Texto completo: </span>
+                          {receipt.rawData || receipt.accessKey}
+                        </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />

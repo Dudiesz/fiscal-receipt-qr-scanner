@@ -6,7 +6,7 @@ import { ManualInputModal } from "@/components/manual-input-modal"
 import { SlideMenu } from "@/components/slide-menu"
 import { saveReceipt } from "@/lib/storage"
 import { getSessionScanCount, addSessionScan } from "@/lib/session-storage"
-import { CheckCircle2, AlertTriangle, XCircle, Database, Receipt, DollarSign, ScanLine, TrendingUp } from "lucide-react"
+import { CheckCircle2, AlertTriangle, XCircle, Database, ScanLine } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function Home() {
@@ -15,8 +15,6 @@ export default function Home() {
   const [isManualInputOpen, setIsManualInputOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [dbError, setDbError] = useState<string | null>(null)
-  const [timeFilter, setTimeFilter] = useState<"30days" | "all">("30days")
-  const [last30DaysCount, setLast30DaysCount] = useState(0)
 
   useEffect(() => {
     setSessionScanCount(getSessionScanCount())
@@ -40,7 +38,7 @@ export default function Home() {
       if (newReceipt) {
         addSessionScan(newReceipt.accessKey)
         setSessionScanCount(getSessionScanCount())
-        showStatus("success", "QR Code salvo com sucesso!")
+        showStatus("success", `Código salvo: ${qrData}`)
       } else {
         showStatus("duplicate", "Este código já foi lido anteriormente.")
       }
@@ -170,90 +168,10 @@ export default function Home() {
       </header>
 
       <main className="container mx-auto px-6 py-8 max-w-6xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Session Coupons Card */}
-          <div className="bg-[#1a2332]/80 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <p className="text-sm text-gray-400 mb-2">Cupons Nesta Sessão</p>
-                <p className="text-5xl font-bold text-white mb-1">{sessionScanCount}</p>
-                <p className="text-xs text-gray-500">Sessão atual de leitura</p>
-              </div>
-              <div className="p-4 bg-emerald-500/20 rounded-xl border border-emerald-500/30">
-                <Receipt className="w-8 h-8 text-emerald-500" />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-border/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500" />
-                  <span className="text-sm text-gray-400">Últimos 30 dias</span>
-                </div>
-                <span className="text-2xl font-bold text-white">0</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Total de compras no período</p>
-            </div>
-          </div>
-
-          {/* Taxes Paid Card with breakdown */}
-          <div className="bg-[#1a2332]/80 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-sm text-gray-400 mb-2">Impostos Pagos</p>
-                <p className="text-5xl font-bold text-white mb-1">R$ 0,00</p>
-                <p className="text-xs text-gray-500">Total calculado dos cupons</p>
-              </div>
-              <div className="p-4 bg-purple-500/20 rounded-xl border border-purple-500/30">
-                <DollarSign className="w-8 h-8 text-purple-500" />
-              </div>
-            </div>
-
-            {/* Tax Breakdown */}
-            <div className="space-y-2 pt-4 border-t border-border/30">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">Imposto Estadual</span>
-                <span className="text-white font-semibold">R$ 0,00</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">Imposto Federal</span>
-                <span className="text-white font-semibold">R$ 0,00</span>
-              </div>
-            </div>
-
-            {/* Time Filter */}
-            <div className="mt-4 pt-4 border-t border-border/30">
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setTimeFilter("30days")}
-                  variant="ghost"
-                  size="sm"
-                  className={`text-xs ${
-                    timeFilter === "30days" ? "bg-primary/20 text-primary" : "text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  Últimos 30 dias
-                </Button>
-                <Button
-                  onClick={() => setTimeFilter("all")}
-                  variant="ghost"
-                  size="sm"
-                  className={`text-xs ${
-                    timeFilter === "all" ? "bg-primary/20 text-primary" : "text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  Todos
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-8">
           <section className="bg-[#1a2332]/60 backdrop-blur-sm border border-primary/20 rounded-2xl p-8 shadow-xl">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Scanner Automático de Cupons</h2>
+              <h2 className="text-3xl font-bold text-white mb-2">Scanner de QR Code</h2>
               <p className="text-gray-400">Aponte para o QR Code e o sistema detectará automaticamente</p>
             </div>
 
@@ -286,7 +204,7 @@ export default function Home() {
                   {status.type === "success" && <CheckCircle2 className="w-6 h-6 text-success flex-shrink-0" />}
                   {status.type === "duplicate" && <AlertTriangle className="w-6 h-6 text-warning flex-shrink-0" />}
                   {status.type === "error" && <XCircle className="w-6 h-6 text-destructive flex-shrink-0" />}
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p
                       className={`font-semibold ${
                         status.type === "success"
@@ -300,7 +218,7 @@ export default function Home() {
                       {status.type === "duplicate" && "Código Duplicado"}
                       {status.type === "error" && "Erro"}
                     </p>
-                    <p className="text-sm text-foreground/80">{status.message}</p>
+                    <p className="text-sm text-foreground/80 break-all">{status.message}</p>
                   </div>
                 </div>
               </div>
