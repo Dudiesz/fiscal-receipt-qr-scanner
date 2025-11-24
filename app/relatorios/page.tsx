@@ -211,7 +211,7 @@ export default function RelatoriosPage() {
                         </p>
                         <p className="text-xs font-mono text-gray-400 break-all">
                           <span className="text-gray-500">Texto completo: </span>
-                          {receipt.rawData || receipt.accessKey}
+                          {receipt.qrData || receipt.accessKey}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                           <span className="flex items-center gap-1">

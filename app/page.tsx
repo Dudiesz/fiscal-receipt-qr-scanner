@@ -33,22 +33,35 @@ export default function Home() {
     }
 
     try {
+      console.log("[v0] handleScan called with:", qrData.substring(0, 50))
       const newReceipt = await saveReceipt(qrData)
+      console.log("[v0] saveReceipt returned:", newReceipt ? "success" : "duplicate")
 
       if (newReceipt) {
         addSessionScan(newReceipt.accessKey)
         setSessionScanCount(getSessionScanCount())
-        showStatus("success", `Código salvo: ${qrData}`)
+        showStatus("success", `Código lido com sucesso!`)
       } else {
         showStatus("duplicate", "Este código já foi lido anteriormente.")
       }
     } catch (error: any) {
+      console.error("[v0] handleScan error:", error)
       const errorMessage = error?.message || String(error)
 
-      if (errorMessage.includes("44 dígitos") || errorMessage.includes("Invalid")) {
-        showStatus("error", "Código inválido. A chave de acesso deve ter exatamente 44 dígitos.")
+      if (errorMessage.includes("Variáveis de ambiente do Supabase") || errorMessage.includes("API key are required")) {
+        showStatus(
+          "error",
+          "Configuração do Supabase necessária. Adicione as variáveis NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no seu projeto Vercel.",
+        )
+      } else if (errorMessage.includes("inválida") || errorMessage.includes("44 dígitos")) {
+        showStatus("error", errorMessage)
+      } else if (errorMessage.includes("texto_completo")) {
+        showStatus(
+          "error",
+          "Execute o script SQL 003_add_texto_completo_column.sql para adicionar suporte ao texto completo.",
+        )
       } else {
-        showStatus("error", "Erro ao salvar o código. Tente novamente.")
+        showStatus("error", `Erro ao salvar: ${errorMessage}`)
       }
     }
   }

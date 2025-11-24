@@ -15,20 +15,27 @@ interface ManualInputModalProps {
 
 export function ManualInputModal({ isOpen, onClose, onSubmit }: ManualInputModalProps) {
   const [inputValue, setInputValue] = useState("")
+  const [error, setError] = useState<string | null>(null)
 
   if (!isOpen) return null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (inputValue.trim()) {
-      onSubmit(inputValue.trim())
-      setInputValue("")
-      onClose()
+      setError(null)
+      try {
+        onSubmit(inputValue.trim())
+        setInputValue("")
+        onClose()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro ao processar o código")
+      }
     }
   }
 
   const handleClose = () => {
     setInputValue("")
+    setError(null)
     onClose()
   }
 
@@ -59,11 +66,15 @@ export function ManualInputModal({ isOpen, onClose, onSubmit }: ManualInputModal
               id="qr-input"
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value)
+                setError(null)
+              }}
               placeholder="Cole ou digite o código aqui..."
               className="bg-secondary border-border focus:border-primary transition-colors font-mono"
               autoFocus
             />
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
           <div className="flex gap-3">
