@@ -6,7 +6,7 @@ import { ManualInputModal } from "@/components/manual-input-modal"
 import { SlideMenu } from "@/components/slide-menu"
 import { saveReceipt } from "@/lib/storage"
 import { getSessionScanCount, addSessionScan } from "@/lib/session-storage"
-import { CheckCircle2, AlertTriangle, XCircle, Database, ScanLine } from "lucide-react"
+import { CheckCircle2, AlertTriangle, XCircle, Database, ScanLine, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function Home() {
@@ -15,9 +15,16 @@ export default function Home() {
   const [isManualInputOpen, setIsManualInputOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [dbError, setDbError] = useState<string | null>(null)
+  const [hasMissingEnvVars, setHasMissingEnvVars] = useState(false)
 
   useEffect(() => {
     setSessionScanCount(getSessionScanCount())
+    const hasUrl =
+      typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" && process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0
+    const hasKey =
+      typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
+    setHasMissingEnvVars(!hasUrl || !hasKey)
     setIsLoading(false)
   }, [])
 
@@ -33,9 +40,7 @@ export default function Home() {
     }
 
     try {
-      console.log("[v0] handleScan called with:", qrData.substring(0, 50))
       const newReceipt = await saveReceipt(qrData)
-      console.log("[v0] saveReceipt returned:", newReceipt ? "success" : "duplicate")
 
       if (newReceipt) {
         addSessionScan(newReceipt.accessKey)
@@ -49,10 +54,7 @@ export default function Home() {
       const errorMessage = error?.message || String(error)
 
       if (errorMessage.includes("Variáveis de ambiente do Supabase") || errorMessage.includes("API key are required")) {
-        showStatus(
-          "error",
-          "Configuração do Supabase necessária. Adicione as variáveis NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no seu projeto Vercel.",
-        )
+        setHasMissingEnvVars(true)
       } else if (errorMessage.includes("inválida") || errorMessage.includes("44 dígitos")) {
         showStatus("error", errorMessage)
       } else if (errorMessage.includes("texto_completo")) {
@@ -64,6 +66,101 @@ export default function Home() {
         showStatus("error", `Erro ao salvar: ${errorMessage}`)
       }
     }
+  }
+
+  if (hasMissingEnvVars) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full">
+          <div className="bg-[#1a2332]/80 backdrop-blur-sm border-2 border-warning/40 rounded-2xl p-8 shadow-2xl shadow-warning/10 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-warning/10 rounded-lg border border-warning/30">
+                <Settings className="w-8 h-8 text-warning" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Configuração do Supabase Necessária</h1>
+                <p className="text-gray-400">Variáveis de ambiente faltando</p>
+              </div>
+            </div>
+
+            <div className="bg-[#0a0e1a]/50 border border-primary/20 rounded-lg p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-white">Como Configurar:</h2>
+              <ol className="space-y-4 text-sm text-gray-300">
+                <li className="leading-relaxed">
+                  <strong className="text-white">1. Acesse o Supabase Dashboard:</strong>
+                  <br />
+                  Vá para{" "}
+                  <a
+                    href="https://supabase.com/dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    https://supabase.com/dashboard
+                  </a>
+                </li>
+                <li className="leading-relaxed">
+                  <strong className="text-white">2. Selecione seu projeto</strong> e vá em{" "}
+                  <strong className="text-primary">Settings → API</strong>
+                </li>
+                <li className="leading-relaxed">
+                  <strong className="text-white">3. Copie as seguintes informações:</strong>
+                  <div className="mt-2 space-y-2 ml-4">
+                    <div className="bg-[#1a2332]/60 border border-border/50 rounded p-3">
+                      <p className="text-xs text-gray-400 mb-1">Project URL:</p>
+                      <code className="text-primary font-mono text-xs">NEXT_PUBLIC_SUPABASE_URL</code>
+                    </div>
+                    <div className="bg-[#1a2332]/60 border border-border/50 rounded p-3">
+                      <p className="text-xs text-gray-400 mb-1">Project API keys → anon/public:</p>
+                      <code className="text-primary font-mono text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
+                    </div>
+                  </div>
+                </li>
+                <li className="leading-relaxed">
+                  <strong className="text-white">4. No v0, clique em:</strong>
+                  <br />
+                  Ícone de menu lateral (≡) → <strong className="text-primary">Vars</strong>
+                </li>
+                <li className="leading-relaxed">
+                  <strong className="text-white">5. Adicione as duas variáveis</strong> com os valores copiados do
+                  Supabase
+                </li>
+                <li className="leading-relaxed">
+                  <strong className="text-white">6. Recarregue esta página</strong> após adicionar as variáveis
+                </li>
+              </ol>
+
+              <div className="bg-warning/10 border border-warning/30 rounded p-4 mt-4">
+                <p className="text-xs text-warning font-semibold flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    As variáveis devem começar com <code className="bg-[#0a0e1a]/50 px-1 rounded">NEXT_PUBLIC_</code>{" "}
+                    para funcionar no navegador
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button onClick={() => window.location.reload()} className="flex-1 bg-primary hover:bg-primary/90">
+                Recarregar Página
+              </Button>
+              <Button
+                onClick={() => window.open("https://supabase.com/dashboard/project/_/settings/api", "_blank")}
+                variant="outline"
+                className="flex-1 border-primary/30 hover:bg-primary/10"
+              >
+                Abrir Supabase Dashboard
+              </Button>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center">
+              Após configurar as variáveis de ambiente, recarregue a página para continuar
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (dbError === "table_not_found") {
